@@ -59,7 +59,7 @@ Order by 1,2
 With PopvsVac (Continent, Location, Date, Population,New_Vaccinations, RollingPeopleVaccinated)
 as
 (
-Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
+Select dea.continent, dea.location, dea.date, dea.population,vac.new_vaccinations,
 SUM(convert(int,vac.new_vaccinations)) over (Partition by dea.location Order by dea.location,
 dea.Date) AS RollingPeopleVaccinated
 ---, (RollingPeopleVaccinated/population)*100
@@ -77,8 +77,8 @@ From PopvsVac
 
 
 ----TEMP TABLE
-Drop Table if exists	#PercentPopulationVaccinated
-Create Table #PercentPopulationVaccinated
+Drop Table if exists	#PercentPopulationVaccinated1
+Create Table #PercentPopulationVaccinated1
 (
 Continent nvarchar(255),
 Location nvarchar(255),
@@ -89,9 +89,9 @@ RollingPeopleVaccinated numeric
 )
 
 
-Insert into #PercentPopulationVaccinated
+Insert into #PercentPopulationVaccinated1
 Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
-SUM(convert(int,vac.new_vaccinations)) over (Partition by dea.location Order by dea.location,
+SUM(convert(float,vac.new_vaccinations)) over (Partition by dea.location Order by dea.location,
 dea.Date) AS RollingPeopleVaccinated
 ---, (RollingPeopleVaccinated/population)*100
 From CovidDeaths dea
@@ -100,8 +100,11 @@ ON dea.location = vac.location
 AND dea.date = vac.date
 
 
-Select *, (RollingPeopleVaccinated/Population)*100
-From #PercentPopulationVaccinated
+Select *
+From #PercentPopulationVaccinated1
+
+Select *, (RollingPeopleVaccinated /Population)*100
+From #PercentPopulationVaccinated1
 
 ----- Create View 
 Create View PercentPopulationVaccinated as
